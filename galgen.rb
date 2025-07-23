@@ -70,17 +70,18 @@ def handle_dir(path, css_path)
   links = []
   images = []
 
+  if File.exist? File.join(path, "style.css")
+    css_path = File.join(css_path, File.split(path)[1])
+  end
+
   Dir.each_child(path) {|c|
     full_path = File.join(path, c)
     if File.directory? full_path
       links.append c
-      handle_dir full_path, File.join(css_path, c)
+      handle_dir full_path, File.join('..', css_path)
 
     elsif c == 'desc.html'
       desc = File.read full_path
-
-    elsif c == 'style.css'
-      css = full_path
 
     elsif c.match? $img_regex
       images.append c
@@ -91,5 +92,5 @@ def handle_dir(path, css_path)
              template(css_path, title, desc, links, images))
 end
 
-handle_dir path, './'
+handle_dir path, '..'
 
