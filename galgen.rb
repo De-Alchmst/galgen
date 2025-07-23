@@ -49,7 +49,7 @@ def template(css_path, title, desc, links, images)
         <main>
         #{
           images.map {|i|
-            "<img src='#{i}' alt='#{i}'>"
+            "<a href='#{i}'><img src='#{i}' alt='#{i}'></a>"
           }.join "\n"
         }
         </main>
