@@ -1,0 +1,97 @@
+#!/usr/bin/env ruby
+
+# HANDLE .ENV #
+
+env = File.read(File.join(File.dirname(__FILE__), ".env")).strip
+abort("invalid .env") if env.empty?
+
+key, path = env.split(/\n/)[0].split('=')
+abort("invalid .env") unless key == "GALLERY" and path
+
+# PREPARE TEMPLATE #
+
+css_path = File.join(path, 'style.css')
+$img_regex = /.*(?:png|jpg|jpeg|gif|svg|bmp|apng|webp)/i
+
+def template(css, title, desc, links, images)
+  "
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>#{title}</title>
+    <meta charset='UTF-8'>
+    <link rel='stylesheet' href='#{css}'>
+  </head>
+  <body>
+    #{
+      unless desc.empty?
+        "
+        <header>
+          #{desc}
+        </header>
+        "
+      end
+    }
+
+    <nav>
+      <ul>
+        <li><a href='..'>../</a></li>
+        #{
+          links.map {|l|
+            "<li><a href='#{l}'>#{l}/</a></li>"
+          }.join "\n"
+        }
+      <ul>
+    </nav>
+
+    #{
+      unless images.empty?
+        "
+        <main>
+        #{
+          images.map {|i|
+            "<img src='#{i}' alt='#{i}'>"
+          }.join "\n"
+        }
+        </main>
+        "
+      end
+    }
+  </body>
+</html>
+  "
+end
+
+# HANDLE RECURSIVELY #
+
+def handle_dir(path, css_path)
+  puts path
+  css = css_path
+  title = File.split(path)[1]
+  desc = ""
+  links = []
+  images = []
+
+  Dir.each_child(path) {|c|
+    full_path = File.join(path, c)
+    if File.directory? full_path
+      links.append c
+      handle_dir full_path, css_path
+
+    elsif c == 'desc.html'
+      desc = File.read full_path
+
+    elsif c == 'style.css'
+      css = full_path
+
+    elsif c.match? $img_regex
+      images.append c
+    end
+  }
+
+  File.write(File.join(path, 'index.html'),
+             template(css, title, desc, links, images))
+end
+
+handle_dir path, css_path
+
