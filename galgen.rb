@@ -10,17 +10,16 @@ abort("invalid .env") unless key == "GALLERY" and path
 
 # PREPARE TEMPLATE #
 
-css_path = File.join(path, 'style.css')
 $img_regex = /.*(?:png|jpg|jpeg|gif|svg|bmp|apng|webp)/i
 
-def template(css, title, desc, links, images)
+def template(css_path, title, desc, links, images)
   "
 <!DOCTYPE html>
 <html>
   <head>
     <title>#{title}</title>
     <meta charset='UTF-8'>
-    <link rel='stylesheet' href='#{css}'>
+    <link rel='stylesheet' href='#{css_path}/style.css'>
   </head>
   <body>
     #{
@@ -66,7 +65,6 @@ end
 
 def handle_dir(path, css_path)
   puts path
-  css = css_path
   title = File.split(path)[1]
   desc = ""
   links = []
@@ -76,7 +74,7 @@ def handle_dir(path, css_path)
     full_path = File.join(path, c)
     if File.directory? full_path
       links.append c
-      handle_dir full_path, css_path
+      handle_dir full_path, File.join(css_path, c)
 
     elsif c == 'desc.html'
       desc = File.read full_path
@@ -90,8 +88,8 @@ def handle_dir(path, css_path)
   }
 
   File.write(File.join(path, 'index.html'),
-             template(css, title, desc, links, images))
+             template(css_path, title, desc, links, images))
 end
 
-handle_dir path, css_path
+handle_dir path, './'
 
